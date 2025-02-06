@@ -7,6 +7,7 @@ export default function Home() {
   const [profile, setProfile] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [generatedLetter, setGeneratedLetter] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleJobDetailsChange = (e) => {
     setJobDetails(e.target.value);
@@ -26,7 +27,6 @@ export default function Home() {
         setProfile(text.text);
       } catch (error) {
         console.error('Error processing PDF:', error);
-        // You might want to add error handling UI here
       }
     }
   };
@@ -166,7 +166,7 @@ export default function Home() {
             onClick={handleGenerate}
             className="w-full mt-6 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 rounded-lg transition-all transform hover:scale-[1.02]"
           >
-            Generate Motivation Letter
+            {isGenerating ? 'Generating...' : 'Generate Motivation Letter'}
           </button>
         </div>
       </main>
