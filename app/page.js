@@ -101,7 +101,7 @@ export default function Home() {
             Motivation Letter Generator
           </h1>
           <p className="text-gray-400 text-center mb-8">
-            Generate a tailored motivation letter for your job application
+            Generate a motivation letter for your job application based on your CV and the job posting
           </p>
 
           {/* Job Application Link Section */}
@@ -121,7 +121,7 @@ export default function Home() {
 
           {/* Upload Section */}
           <div className="bg-gray-800 rounded-lg p-6 mb-6 shadow-lg">
-            <h2 className="text-xl font-semibold mb-4">Upload Your Profile</h2>
+            <h2 className="text-xl font-semibold mb-4">Upload Your CV</h2>
             <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center">
               <input
                 type="file"
