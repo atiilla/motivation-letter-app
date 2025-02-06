@@ -141,7 +141,7 @@ export default function Home() {
             <textarea
               value={jobDetails}
               onChange={(e) => setJobDetails(e.target.value)}
-              placeholder="Paste the job posting URL here"
+              placeholder="Paste the job"
               className="w-full bg-gray-700 border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-100"
               rows={10}
             />
