@@ -146,7 +146,7 @@ export default function Home() {
               rows={10}
             />
             <p className="text-gray-400 mt-2 text-sm">
-              Add the link to the job posting to tailor your motivation letter
+              Paste the job details here
             </p>
           </div>
 
