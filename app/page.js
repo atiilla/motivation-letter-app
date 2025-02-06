@@ -1,101 +1,205 @@
-import Image from "next/image";
-
+'use client'
+import { useState } from "react";
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [language, setLanguage] = useState('');
+  const [fileName, setFileName] = useState('');
+  const [jobDetails, setJobDetails] = useState('');
+  const [profile, setProfile] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [generatedLetter, setGeneratedLetter] = useState('');
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
+  const handleJobDetailsChange = (e) => {
+    setJobDetails(e.target.value);
+  };
+
+  const handleLanguageChange = (e) => {
+    setLanguage(e.target.value);
+  };
+
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFileName(file.name);
+      try {
+        const text = await handleFileUploadAndExtractText(file);
+        setProfile(text.text);
+      } catch (error) {
+        console.error('Error processing PDF:', error);
+        // You might want to add error handling UI here
+      }
+    }
+  };
+
+  const handleGenerate = async () => {
+    if (!jobDetails || !language || !profile) {
+      alert('Please fill in all fields and upload a PDF');
+      return;
+    }
+
+    const prompt = `
+    You are a professional resume writer.
+    You are given a job posting and a profile.
+    You need to write a motivation letter for the profile to the job posting.
+    The job posting is: ${jobDetails}
+    The profile is: ${profile}
+    The language is: ${language}
+    `
+    
+    try {
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          messages: [
+            {
+              role: "user", 
+              content: prompt
+            }
+          ]
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate letter');
+      }
+
+      const data = await response.json();
+      setGeneratedLetter(data.content);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error('Error generating letter:', error);
+      alert('Failed to generate letter. Please try again.');
+    }
+  };
+
+  const handleFileUploadAndExtractText = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await fetch('/api/readpdf', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to process PDF');
+    }
+
+    const data = await response.json();
+    return data;
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-900 text-gray-100">
+      <main className="container mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto">
+          {/* Header Section */}
+          <h1 className="text-4xl font-bold text-center mb-6 bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+            Motivation Letter Generator
+          </h1>
+          <p className="text-gray-400 text-center mb-8">
+            Generate a tailored motivation letter for your job application
+          </p>
+
+          {/* Job Application Link Section */}
+          <div className="bg-gray-800 rounded-lg p-6 mb-6 shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Job Application Details</h2>
+            <textarea
+              value={jobDetails}
+              onChange={(e) => setJobDetails(e.target.value)}
+              placeholder="Paste the job posting URL here"
+              className="w-full bg-gray-700 border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-100"
+              rows={10}
             />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <p className="text-gray-400 mt-2 text-sm">
+              Add the link to the job posting to tailor your motivation letter
+            </p>
+          </div>
+
+          {/* Upload Section */}
+          <div className="bg-gray-800 rounded-lg p-6 mb-6 shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Upload Your Profile</h2>
+            <div className="border-2 border-dashed border-gray-600 rounded-lg p-8 text-center">
+              <input
+                type="file"
+                accept=".pdf"
+                className="hidden"
+                id="file-upload"
+                onChange={handleFileChange}
+              />
+              <label
+                htmlFor="file-upload"
+                className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                Choose PDF File
+              </label>
+              {fileName && (
+                <p className="text-gray-300 mt-2">Selected file: {fileName}</p>
+              )}
+              <p className="text-gray-400 mt-2 text-sm">
+                Upload your CV/Resume in PDF format
+              </p>
+            </div>
+          </div>
+
+          {/* Language Selection */}
+          <div className="bg-gray-800 rounded-lg p-6 shadow-lg">
+            <h2 className="text-xl font-semibold mb-4">Select Language</h2>
+            <select
+              value={language}
+              onChange={handleLanguageChange}
+              className="w-full bg-gray-700 border border-gray-600 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              <option value="">Select a language</option>
+              <option value="English">English</option>
+              <option value="Turkish">Turkish</option>
+              <option value="French">French</option>
+              <option value="Dutch">Dutch</option>
+            </select>
+          </div>
+
+          {/* Generate Button */}
+          <button
+            onClick={handleGenerate}
+            className="w-full mt-6 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white font-semibold py-3 rounded-lg transition-all transform hover:scale-[1.02]"
           >
-            Read our docs
-          </a>
+            Generate Motivation Letter
+          </button>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-semibold">Generated Motivation Letter</h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="text-gray-400 hover:text-gray-200"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="prose prose-invert max-w-none">
+              <pre className="whitespace-pre-wrap">{generatedLetter}</pre>
+            </div>
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
