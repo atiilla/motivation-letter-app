@@ -1,5 +1,6 @@
 'use client'
 import { useState } from "react";
+import Swal from 'sweetalert2';
 export default function Home() {
   const [language, setLanguage] = useState('');
   const [fileName, setFileName] = useState('');
@@ -16,6 +17,16 @@ export default function Home() {
   const handleLanguageChange = (e) => {
     setLanguage(e.target.value);
   };
+
+
+  const handleClipboardChange = (e) => {
+    e.preventDefault();
+    navigator.clipboard.writeText(generatedLetter);
+    Swal.fire({
+      title: 'Motivation letter copied to clipboard',
+      icon: 'success',
+    });
+  }
 
 
   const handleFileChange = async (e) => {
@@ -177,7 +188,7 @@ export default function Home() {
       {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-gray-800 rounded-lg p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto">
+          <div className="bg-gray-800 rounded-lg p-6 max-w-3xl w-full max-h-[80vh] overflow-y-auto" onClick={handleClipboardChange}>
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-semibold">Generated Motivation Letter</h2>
               <button
