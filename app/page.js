@@ -46,6 +46,7 @@ export default function Home() {
     The language is: ${language}
     `
     
+    setIsGenerating(true);
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -69,9 +70,11 @@ export default function Home() {
       const data = await response.json();
       setGeneratedLetter(data.content);
       setIsModalOpen(true);
+      setIsGenerating(false);
     } catch (error) {
       console.error('Error generating letter:', error);
       alert('Failed to generate letter. Please try again.');
+      setIsGenerating(false);
     }
   };
 
